@@ -24,7 +24,7 @@ static const char uuidCharacters[] = "abcdefghijklmnopqrstuvwxyz0123456789";
 char base64val[128];
 static CkCrypt2 crypt;
 static const char *papago_domain = "https://papago.naver.com/apis/n2mt/translate";
-//*ÇÊ¿äÇÑ º¯¼ö ¹× Á¤ÀÇµé
+//*í•„ìš”í•œ ë³€ìˆ˜ ë° ì •ì˜ë“¤
 
 static const char* postParams [FORMDATA_KEY_VALUE_COUNT * 2] = {
 	"deviceId", NULL,
@@ -38,49 +38,49 @@ static const char* postParams [FORMDATA_KEY_VALUE_COUNT * 2] = {
 	"target", NULL,
 	"text", NULL
 };
-//*x-www-form-urlencoded Çü½ÄÀ¸·Î ³Ö¾îÁÙ key-value°ªµé
-//*Ã¹ ¹øÂ° NULL¿¡´Â ·£´ı »ı¼º UUID, µÎ ¹øÂ°´Â ¿ø·¡ ÅØ½ºÆ®ÀÇ ¾ğ¾î(¿©±â¼­´Â "ja")
-//*¼¼ ¹øÂ° NULL¿¡´Â ¹ø¿ªµÈ ÅØ½ºÆ®ÀÇ ¾ğ¾î(¿©±â¼­´Â "ko"), ³× ¹øÂ° NULLÀº UTF-8·Î ÀÎÄÚµùµÈ ÅØ½ºÆ®´Ù
+//*x-www-form-urlencoded í˜•ì‹ìœ¼ë¡œ ë„£ì–´ì¤„ key-valueê°’ë“¤
+//*ì²« ë²ˆì§¸ NULLì—ëŠ” ëœë¤ ìƒì„± UUID, ë‘ ë²ˆì§¸ëŠ” ì›ë˜ í…ìŠ¤íŠ¸ì˜ ì–¸ì–´(ì—¬ê¸°ì„œëŠ” "ja")
+//*ì„¸ ë²ˆì§¸ NULLì—ëŠ” ë²ˆì—­ëœ í…ìŠ¤íŠ¸ì˜ ì–¸ì–´(ì—¬ê¸°ì„œëŠ” "ko"), ë„¤ ë²ˆì§¸ NULLì€ UTF-8ë¡œ ì¸ì½”ë”©ëœ í…ìŠ¤íŠ¸ë‹¤
 
 static CURL *curl;
-//*libcurlÀ» ÀÌ¿ëÇÏ±â À§ÇÑ º¯¼ö
+//*libcurlì„ ì´ìš©í•˜ê¸° ìœ„í•œ ë³€ìˆ˜
 
 static struct MemoryStruct m_chunk;
-//*µ¥ÀÌÅÍ¸¦ ¹ŞÀ» º¯¼ö
+//*ë°ì´í„°ë¥¼ ë°›ì„ ë³€ìˆ˜
 
 
 extern CListCtrl *m_G_ListCtrl_Files;
 extern CListCtrl *m_G_ListCtrl_Text;
 extern DIR_TXT_IDX m_Text_Idx_In_Dir;
-//*externÀ¸·Î ¸®½ºÆ® º¯¼ö¸¦ ¾ò¾î¿È 
+//*externìœ¼ë¡œ ë¦¬ìŠ¤íŠ¸ ë³€ìˆ˜ë¥¼ ì–»ì–´ì˜´ 
 
 extern TCHAR *Prefix_Text_Str[];
 extern unsigned int Prefix_Length;
-//*Prefix¿ë ¹®ÀÚ¿­
+//*Prefixìš© ë¬¸ìì—´
 
 extern TCHAR *T_Head_Start;
 extern TCHAR *T_Head_End;
-//*ÅØ½ºÆ® Çì´õ¿ë ¹®ÀÚ¿­
+//*í…ìŠ¤íŠ¸ í—¤ë”ìš© ë¬¸ìì—´
 
 extern TCHAR *T_Head_Dirty;
 extern unsigned int Dirty_Prefix_Length;
-//*Dirty Prefix ¹®ÀÚ¿­
+//*Dirty Prefix ë¬¸ìì—´
 
 extern int Get_List_Index (unsigned int fidx, unsigned int tidx);
 
 
 TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText);
-//*¹ø¿ª ¼öÇà ÇÔ¼ö
+//*ë²ˆì—­ ìˆ˜í–‰ í•¨ìˆ˜
 
 
 void encode_base64(unsigned char *out, unsigned char *in, int inlen)
 {
-	for (; inlen >= 3; inlen -= 3)										//3¹ÙÀÌÆ®¸¦ 6ºñÆ® ´ÜÀ§·Î ²÷¾î¼­ 4¹ÙÀÌÆ®·Î ¸¸µë.
+	for (; inlen >= 3; inlen -= 3)										//3ë°”ì´íŠ¸ë¥¼ 6ë¹„íŠ¸ ë‹¨ìœ„ë¡œ ëŠì–´ì„œ 4ë°”ì´íŠ¸ë¡œ ë§Œë“¬.
 	{
-		*out++ = base64digits[in[0] >> 2];								//0¹øÂ° ¾Õ6ÀÚ¸®
-		*out++ = base64digits[((in[0] << 4) & 0x30) | (in[1] >> 4)];	//0¹øÂ° µÚ2ÀÚ¸® | 1¹øÂ° ¾Õ4ÀÚ¸®
-		*out++ = base64digits[((in[1] << 2) & 0x3c) | (in[2] >> 6)];	//1¹øÂ° µÚ4ÀÚ¸® | 2¹øÂ° ¾Õ2ÀÚ¸®
-		*out++ = base64digits[in[2] & 0x3f];							//2¹øÂ° µÚ6ÀÚ¸®
+		*out++ = base64digits[in[0] >> 2];								//0ë²ˆì§¸ ì•6ìë¦¬
+		*out++ = base64digits[((in[0] << 4) & 0x30) | (in[1] >> 4)];	//0ë²ˆì§¸ ë’¤2ìë¦¬ | 1ë²ˆì§¸ ì•4ìë¦¬
+		*out++ = base64digits[((in[1] << 2) & 0x3c) | (in[2] >> 6)];	//1ë²ˆì§¸ ë’¤4ìë¦¬ | 2ë²ˆì§¸ ì•2ìë¦¬
+		*out++ = base64digits[in[2] & 0x3f];							//2ë²ˆì§¸ ë’¤6ìë¦¬
 		in += 3;
 	}
 
@@ -96,7 +96,7 @@ void encode_base64(unsigned char *out, unsigned char *in, int inlen)
 	}
 	*out = 0;
 }
-//*base64 ÀÎÄÚµù
+//*base64 ì¸ì½”ë”©
 
 
 static size_t WriteMemoryCallback (void *contents, size_t size, size_t nmemb, void *userp)
@@ -111,7 +111,7 @@ static size_t WriteMemoryCallback (void *contents, size_t size, size_t nmemb, vo
 		memcpy (new_m, mem->memory, mem->size);
 		free (mem->memory); mem->memory = new_m;
 	}
-	// ¸Ş¸ğ¸® Å©±â¸¦ ¾ù³ª°¡¸é º¸Á¤ÇÑ´Ù
+	// ë©”ëª¨ë¦¬ í¬ê¸°ë¥¼ ì—‡ë‚˜ê°€ë©´ ë³´ì •í•œë‹¤
 	if (mem->memory == NULL) {
 		printf ("Memory allocate Error\n"); return 0;
 	}
@@ -120,7 +120,7 @@ static size_t WriteMemoryCallback (void *contents, size_t size, size_t nmemb, vo
 	mem->memory[mem->size] = 0;
 	return realsize;
 }
-//*libcurl¿¡¼­ ±â·Ï ½Ã Äİ¹é ÇÔ¼ö
+//*libcurlì—ì„œ ê¸°ë¡ ì‹œ ì½œë°± í•¨ìˆ˜
 
 
 int char2int (char input)
@@ -174,7 +174,7 @@ char* stristr( const char* str1, const char* str2 )
 	}
 	return *p2 == 0 ? (char*)r : 0 ;
 }
-//*±âÅ¸ ±â´Éµé
+//*ê¸°íƒ€ ê¸°ëŠ¥ë“¤
 
 
 void translateInit()
@@ -184,28 +184,28 @@ void translateInit()
 
 	crypt.put_EncodingMode("hex");
 	crypt.put_HashAlgorithm("md5");
-	crypt.SetHmacKeyEncoded("v1.5.2_0d13cb6cf4", "ansi");
+	crypt.SetHmacKeyEncoded("v1.5.6_97f6918302", "ansi");
 
 	curl_easy_setopt(curl, CURLOPT_URL, "https://papago.naver.com/apis/n2mt/translate");
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-	// url ÁöÁ¤ ¹× °úÁ¤ Ãâ·Â ¾ÈÇÔ
+	// url ì§€ì • ë° ê³¼ì • ì¶œë ¥ ì•ˆí•¨
 		
 	curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 	curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void*)&m_chunk);
-	// ±â·Ï½Ã Äİ¹é ÇÔ¼ö¿Í ±â·ÏÇÒ °ø°£ ÁöÁ¤
+	// ê¸°ë¡ì‹œ ì½œë°± í•¨ìˆ˜ì™€ ê¸°ë¡í•  ê³µê°„ ì§€ì •
 
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-	// ÀÎÁõ ¹«½Ã
+	// ì¸ì¦ ë¬´ì‹œ
 }
-//*ÃÊ±âÈ­ ÇÔ¼ö
+//*ì´ˆê¸°í™” í•¨ìˆ˜
 
 void translateTerminate()
 {
 	curl_easy_cleanup (curl);
 	curl_global_cleanup();
 }
-//*Á¾°á ÇÔ¼ö
+//*ì¢…ê²° í•¨ìˆ˜
 
 
 
@@ -224,10 +224,10 @@ string getRandomUUID()
 	string ret_s = postBuf.str();
 	postBuf << flush;
 	return ret_s;
-	// 8¹ÙÀÌÆ® + '-' + 4¹ÙÀÌÆ® + '-' + 4¹ÙÀÌÆ® + '-' + 4¹ÙÀÌÆ® + '-' + 12¹ÙÀÌÆ®
-	// Çã¿ë ÀÎµ¦½º : 26 ~ 61 (36°³)
+	// 8ë°”ì´íŠ¸ + '-' + 4ë°”ì´íŠ¸ + '-' + 4ë°”ì´íŠ¸ + '-' + 4ë°”ì´íŠ¸ + '-' + 12ë°”ì´íŠ¸
+	// í—ˆìš© ì¸ë±ìŠ¤ : 26 ~ 61 (36ê°œ)
 }
-//*UUID »ı¼º ÇÔ¼ö
+//*UUID ìƒì„± í•¨ìˆ˜
 
 
 ULONGLONG getCurrentUCTTimeAsMillisecond()
@@ -241,7 +241,7 @@ ULONGLONG getCurrentUCTTimeAsMillisecond()
 	ULONGLONG posixTime = fileTimeNano100/10000 - 11644473600000;
 	return posixTime;
 }
-//*ÇöÀç UTC ½Ã°£ ¹Ğ¸®ÃÊ ¹İÈ¯ ÇÔ¼ö
+//*í˜„ì¬ UTC ì‹œê°„ ë°€ë¦¬ì´ˆ ë°˜í™˜ í•¨ìˆ˜
 
 
 void getEncodedToken (char *uuid, ULONGLONG millisecond, char *token_sav)
@@ -253,12 +253,12 @@ void getEncodedToken (char *uuid, ULONGLONG millisecond, char *token_sav)
 	char *st = (char*)malloc(24 + 1); memset (st, 0, 24 + 1);
 	encode_base64 ((unsigned char*)token_sav, (unsigned char*)hex, 16);
 }
-//*¾ÏÈ£È­ ÅäÅ« ¹İÈ¯ ÇÔ¼ö
+//*ì•”í˜¸í™” í† í° ë°˜í™˜ í•¨ìˆ˜
 
 
 void Papago_Translate (Autotrans_Papago_Dialog *TransDlg, TCHAR *Translating_File, TCHAR *srcLang, TCHAR *destLang, unsigned int start_idx, unsigned int end_idx)
 {
-	// ÀÎµ¦½º¸¦ ÀÌ¿ëÇÑ ¹üÀ§ ÁöÁ¤µµ »ı°¢ÇØº»´Ù
+	// ì¸ë±ìŠ¤ë¥¼ ì´ìš©í•œ ë²”ìœ„ ì§€ì •ë„ ìƒê°í•´ë³¸ë‹¤
 	map<CString, CString> cachier;
 
 	TransDlg->SetDlgItemText (IDC_TRANS_PROG_TEXT, _T("Translating Progress : "));
@@ -272,24 +272,24 @@ void Papago_Translate (Autotrans_Papago_Dialog *TransDlg, TCHAR *Translating_Fil
 			File_Idx = i; break;
 		}
 	}
-	//*¹ø¿ªÇÒ ÆÄÀÏÀÇ ÀÎµ¦½º ±¸ÇÏ±â
+	//*ë²ˆì—­í•  íŒŒì¼ì˜ ì¸ë±ìŠ¤ êµ¬í•˜ê¸°
 		
 	int T_List_Idx = Get_List_Index (File_Idx, 0);
 	TransDlg->progressing_file_idx = File_Idx;
-	//*Á¤º¸ ¼¼ÆÃ
+	//*ì •ë³´ ì„¸íŒ…
 
 	for (unsigned int j = start_idx;j <= end_idx;j++) {
 
 		CString tmpCStr; 
 		tmpCStr.Format(_T("Text in File %s(%d/%d)"), Translating_File, j, m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Text_Cnt);
 		TransDlg->SetDlgItemText (IDC_TRANS_PROG_TEXT, tmpCStr);
-		//*ÇöÀç ¹ø¿ª »óÅÂ Á¤º¸ ¶ç¿ì±â
+		//*í˜„ì¬ ë²ˆì—­ ìƒíƒœ ì •ë³´ ë„ìš°ê¸°
 
 		TransDlg->m_Translate_Progress.SetPos (PROGRESSVALUE((j-start_idx), total_idx));
-		//*ÇÁ·Î±×·¹½º ¹Ù ¼¼ÆÃ
+		//*í”„ë¡œê·¸ë ˆìŠ¤ ë°” ì„¸íŒ…
 
 		tstr = m_G_ListCtrl_Text->GetItemText (j + m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Idx_of_Text_Start + 1, 0);
-		//*ÅØ½ºÆ®
+		//*í…ìŠ¤íŠ¸
 
 		if (m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Text_Idx_Arr[j].File_Str_Idx == NONE_FILE) {
 			CString srcLang, destLang;
@@ -301,7 +301,7 @@ void Papago_Translate (Autotrans_Papago_Dialog *TransDlg, TCHAR *Translating_Fil
 			else {
 				orgStr = tstr.Right (tstr.GetLength() - Prefix_Length);
 			}
-			//*´õÆ¼ ¹®ÀÚ¿­, prefix ¹®ÀÚ¿­ Á¦°Å ÈÄ ÁøÇà
+			//*ë”í‹° ë¬¸ìì—´, prefix ë¬¸ìì—´ ì œê±° í›„ ì§„í–‰
 
 			for (unsigned int t_rep = 0;t_rep < 3;t_rep++) {
 				if (cachier.find(orgStr) == cachier.end()) {
@@ -310,23 +310,23 @@ void Papago_Translate (Autotrans_Papago_Dialog *TransDlg, TCHAR *Translating_Fil
 					TCHAR *trans_text = GetTranslatedText (srcLang.GetBuffer(), destLang.GetBuffer(), orgStr.GetBuffer());
 					transStr = trans_text;
 					free (trans_text);
-					//*±ÛÀÚ°¡ ¸Ê¿¡ ¾øÀ¸¸é ¹ø¿ª (¾îÂ÷ÇÇ ÅØ½ºÆ® ¼öµµ ÇÑÁ¤µÇ¾î ÀÖÀ¸´Ï ÀÌ·¯´Â °Ô ³ªÀ» °Í °°´Ù)
+					//*ê¸€ìê°€ ë§µì— ì—†ìœ¼ë©´ ë²ˆì—­ (ì–´ì°¨í”¼ í…ìŠ¤íŠ¸ ìˆ˜ë„ í•œì •ë˜ì–´ ìˆìœ¼ë‹ˆ ì´ëŸ¬ëŠ” ê²Œ ë‚˜ì„ ê²ƒ ê°™ë‹¤)
 					cachier.insert(pair<CString, CString>(orgStr, transStr));
-					//*¹ø¿ª ÈÄ ¸Ê¿¡ Ãß°¡
+					//*ë²ˆì—­ í›„ ë§µì— ì¶”ê°€
 				}
-				// ¸Ê¿¡¼­ ¸ø Ã£À» ¶§
+				// ë§µì—ì„œ ëª» ì°¾ì„ ë•Œ
 				else { transStr = cachier[orgStr]; }
-				// ¸Ê¿¡¼­ Ã£À» ¶§
+				// ë§µì—ì„œ ì°¾ì„ ë•Œ
 				if (transStr.GetLength() != 0) { break; }
 			}
 
 			if (transStr.GetLength() == 0) {
-				tmpCStr.Format (_T("%s:[%06d] in %s:¹ø¿ª ½ÇÆĞ!"), orgStr, j, Translating_File);
+				tmpCStr.Format (_T("%s:[%06d] in %s:ë²ˆì—­ ì‹¤íŒ¨!"), orgStr, j, Translating_File);
 				AfxMessageBox (tmpCStr);
 			}
-			//*¸¸ÀÏ ¹ø¿ª ½ÇÆĞÇÏ¸é ¸Ş½ÃÁöÃ¢ ¶ç¿ì°í ºüÁ®³ª°£´Ù
-			//*È¤½Ã ¼­¹ö Àå¾Ö·Î ¾ÈµÆÀ» ¼öµµ ÀÖÀ¸´Ï 3¹ø±îÁö Àç½ÃµµÇØº¸´Â °Íµµ ±¦ÂúÀ» °Í °°´Ù
-			//*¹ø¿ª ½ÇÆĞÇÑ ÅØ½ºÆ® ÀÎµ¦½º¸¦ ¶ç¿öÁà¼­ ¹» Á÷Á¢ ¼öÁ¤ÇØ¾ß ¾ËÁö ¾Ë·ÁÁØ´Ù
+			//*ë§Œì¼ ë²ˆì—­ ì‹¤íŒ¨í•˜ë©´ ë©”ì‹œì§€ì°½ ë„ìš°ê³  ë¹ ì ¸ë‚˜ê°„ë‹¤
+			//*í˜¹ì‹œ ì„œë²„ ì¥ì• ë¡œ ì•ˆëì„ ìˆ˜ë„ ìˆìœ¼ë‹ˆ 3ë²ˆê¹Œì§€ ì¬ì‹œë„í•´ë³´ëŠ” ê²ƒë„ ê´œì°®ì„ ê²ƒ ê°™ë‹¤
+			//*ë²ˆì—­ ì‹¤íŒ¨í•œ í…ìŠ¤íŠ¸ ì¸ë±ìŠ¤ë¥¼ ë„ì›Œì¤˜ì„œ ë­˜ ì§ì ‘ ìˆ˜ì •í•´ì•¼ ì•Œì§€ ì•Œë ¤ì¤€ë‹¤
 
 			else {
 				m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Text_Idx_Arr[j].Is_Text_Dirty = true;	
@@ -334,10 +334,10 @@ void Papago_Translate (Autotrans_Papago_Dialog *TransDlg, TCHAR *Translating_Fil
 					Prefix_Text_Str[m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Text_Idx_Arr[j].Lang_Code], 
 					j, T_Head_Dirty, transStr);
 				m_G_ListCtrl_Text->SetItemText ((T_List_Idx + j), 0, apply_Txt);
-				//*¹ø¿ª ÈÄ¿¡´Â ¹«Á¶°Ç ´õÆ¼·Î °íÁ¤½ÃÅ°°í ´õÆ¼ ¹®ÀÚ¿­, prefix ´Ù ºÙ¿©¼­ ¸®½ºÆ®¿¡ ¹İ¿µÇÑ´Ù
+				//*ë²ˆì—­ í›„ì—ëŠ” ë¬´ì¡°ê±´ ë”í‹°ë¡œ ê³ ì •ì‹œí‚¤ê³  ë”í‹° ë¬¸ìì—´, prefix ë‹¤ ë¶™ì—¬ì„œ ë¦¬ìŠ¤íŠ¸ì— ë°˜ì˜í•œë‹¤
 			}
 		}
-		//*¿ÀÁ÷ ÆÄÀÏ¸íÀÌ ¾Æ´Ò ¶§¸¸ ÁøÇàÇÑ´Ù
+		//*ì˜¤ì§ íŒŒì¼ëª…ì´ ì•„ë‹ ë•Œë§Œ ì§„í–‰í•œë‹¤
 	}
 
 	if (!m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Is_FileTxt_Dirty) {
@@ -345,42 +345,42 @@ void Papago_Translate (Autotrans_Papago_Dialog *TransDlg, TCHAR *Translating_Fil
 		m_G_ListCtrl_Text->SetItemText ((T_List_Idx - 1), 0, apply_Txt);
 		m_Text_Idx_In_Dir.File_Idx_Arr[File_Idx].Is_FileTxt_Dirty = true;
 	}
-	//*¹İ°¢ ¹®ÀÚ°¡ ÀÖ´Ù¸é ÆÄÀÏ Çì´õ¸í Dirty »óÅÂ·Î ¹Ù²Ù±â
-	//*Ä³½Ã¿ëÀ¸·Î mapÀ» ¸¸µé°í ÀÖÀ¸¸é °Å±â¼­ °ñ¶ó Ã³¸®ÇÏµµ·Ï ÇÑ´Ù
+	//*ë°˜ê° ë¬¸ìê°€ ìˆë‹¤ë©´ íŒŒì¼ í—¤ë”ëª… Dirty ìƒíƒœë¡œ ë°”ê¾¸ê¸°
+	//*ìºì‹œìš©ìœ¼ë¡œ mapì„ ë§Œë“¤ê³  ìˆìœ¼ë©´ ê±°ê¸°ì„œ ê³¨ë¼ ì²˜ë¦¬í•˜ë„ë¡ í•œë‹¤
 
 	if (!m_Text_Idx_In_Dir.Is_Dirty) {
 		m_Text_Idx_In_Dir.Is_Dirty = true;
 	}
-	//*ÆÄÀÏ, ¿øº»¿¡µµ Dirty »óÅÂ Àû¿ë
+	//*íŒŒì¼, ì›ë³¸ì—ë„ Dirty ìƒíƒœ ì ìš©
 
 	cachier.clear();
 	TransDlg->m_Translate_Progress.SetPos (100);
 	TransDlg->SetDlgItemText (IDC_TRANS_PROG_TEXT, _T("Translating Finished"));
-	//*ÇÁ·Î±×·¹½º ¹Ù °»½Å
+	//*í”„ë¡œê·¸ë ˆìŠ¤ ë°” ê°±ì‹ 
 }
-//*½ÇÁ¦ ¹ø¿ª ¼öÇà ÇÔ¼ö
+//*ì‹¤ì œ ë²ˆì—­ ìˆ˜í–‰ í•¨ìˆ˜
 
 
 TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 {
 	char *utf8txt = UTF16_To_UTF8 (originText);
-	// ¹ø¿ªÇÒ ÅØ½ºÆ® UTF-8·Î º¯È¯
+	// ë²ˆì—­í•  í…ìŠ¤íŠ¸ UTF-8ë¡œ ë³€í™˜
 
 	struct curl_slist *chunk = NULL;
-	// Æ÷½ºÆ® ÇÊµå¿ë º¯¼ö
+	// í¬ìŠ¤íŠ¸ í•„ë“œìš© ë³€ìˆ˜
 
 	m_chunk.memory = (char*)malloc (UNIT_LENGTH);
 	memset (m_chunk.memory, 0, UNIT_LENGTH);
 	m_chunk.capacity = UNIT_LENGTH;
 	m_chunk.size = 0;
-	// ¹Ì¸® °£´ÜÇÏ°Ô ÇÒ´ç
+	// ë¯¸ë¦¬ ê°„ë‹¨í•˜ê²Œ í• ë‹¹
 
 	curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void*)&m_chunk);
-	// ±â·Ï½Ã Äİ¹é ÇÔ¼ö¿Í ±â·ÏÇÒ °ø°£ ÁöÁ¤
+	// ê¸°ë¡ì‹œ ì½œë°± í•¨ìˆ˜ì™€ ê¸°ë¡í•  ê³µê°„ ì§€ì •
 
 	ULONGLONG t_set = getCurrentUCTTimeAsMillisecond();
-	// µğ¹ÙÀÌ½º ¾ÆÀÌµğ(uuid)¿Í ÇöÀç½Ã°£
-	// µğ¹ÙÀÌ½º ¾ÆÀÌµğ´Â ¹«ÀÛÀ§ ÁöÁ¤°¡´ÉÇÏ¹Ç·Î ½ÇÇàÇÒ ¶§ ÇÑ ¹ø »ı¼ºÇÏ°í °è¼Ó ½á¸Ô´Â´Ù
+	// ë””ë°”ì´ìŠ¤ ì•„ì´ë””(uuid)ì™€ í˜„ì¬ì‹œê°„
+	// ë””ë°”ì´ìŠ¤ ì•„ì´ë””ëŠ” ë¬´ì‘ìœ„ ì§€ì •ê°€ëŠ¥í•˜ë¯€ë¡œ ì‹¤í–‰í•  ë•Œ í•œ ë²ˆ ìƒì„±í•˜ê³  ê³„ì† ì¨ë¨¹ëŠ”ë‹¤
 
 	string deviceIdStr, millisecondStr, tokenStr;
 
@@ -388,8 +388,8 @@ TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 	deviceIdStr = getRandomUUID();
 	memset (_t, 0, 100); sprintf (_t, "%llu", t_set); millisecondStr = _t;
 	memset (_t, 0, 100); getEncodedToken ((char*)deviceIdStr.c_str(), t_set, _t); tokenStr = _t;
-	// µğ¹ÙÀÌ½º ¾ÆÀÌµğ(uuid)¿Í ÇöÀç ¹Ğ¸®ÃÊ ±¸ÇØµÎ°í ÅäÅ« ¾ò±â
-	// string °´Ã¼·Î ÀúÀåÇØµÎ±â
+	// ë””ë°”ì´ìŠ¤ ì•„ì´ë””(uuid)ì™€ í˜„ì¬ ë°€ë¦¬ì´ˆ êµ¬í•´ë‘ê³  í† í° ì–»ê¸°
+	// string ê°ì²´ë¡œ ì €ì¥í•´ë‘ê¸°
 
 	postParams[1] = deviceIdStr.c_str();
 	char src_lang[3], dest_lang[3];
@@ -398,7 +398,7 @@ TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 	postParams[15] = src_lang;
 	postParams[17] = dest_lang;
 	postParams[19] = utf8txt;
-	// µğ¹ÙÀÌ½º ¾ÆÀÌµğ, ¿øº» ¾ğ¾î, ¹ø¿ªµÈ ¾ğ¾î, ÅØ½ºÆ®¸¦ ¹Ş¾Æ¿Â ÀÎÀÚµé·Î ÁöÁ¤
+	// ë””ë°”ì´ìŠ¤ ì•„ì´ë””, ì›ë³¸ ì–¸ì–´, ë²ˆì—­ëœ ì–¸ì–´, í…ìŠ¤íŠ¸ë¥¼ ë°›ì•„ì˜¨ ì¸ìë“¤ë¡œ ì§€ì •
 		
 	ostringstream postBuf;
 	for (unsigned int i = 0;i < FORMDATA_KEY_VALUE_COUNT;i++) {
@@ -407,19 +407,19 @@ TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 		postBuf << key << "=" << val;
 		if (i < (FORMDATA_KEY_VALUE_COUNT-1)) { postBuf << "&"; }
 		curl_free (key); curl_free (val);
-		// ¿µ¾î°¡ ¾Æ´Ñ ¹®ÀÚµéÀ» x-www-form-urlencoded Çü½ÄÀ¸·Î ¹Ù²ãÄ¡±â
-		// ÀÌ°Íµµ ¾ö¿¬ÇÑ ÇÒ´çÀÌ¹Ç·Î ¸¶Áö¸·¿¡ ÇØÁ¦½ÃÄÑÁØ´Ù
+		// ì˜ì–´ê°€ ì•„ë‹Œ ë¬¸ìë“¤ì„ x-www-form-urlencoded í˜•ì‹ìœ¼ë¡œ ë°”ê¿”ì¹˜ê¸°
+		// ì´ê²ƒë„ ì—„ì—°í•œ í• ë‹¹ì´ë¯€ë¡œ ë§ˆì§€ë§‰ì— í•´ì œì‹œì¼œì¤€ë‹¤
 	}
-	// x-www-form-urlencoded Çü½ÄÀ¸·Î ±â·ÏÇÏ±â
+	// x-www-form-urlencoded í˜•ì‹ìœ¼ë¡œ ê¸°ë¡í•˜ê¸°
 
 	string postData; postData = postBuf.str();
 	postBuf << flush;
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
-	// form µ¥ÀÌÅÍ ¼¼ÆÃ
+	// form ë°ì´í„° ì„¸íŒ…
 
 	string author_Str = "PPG "; author_Str += deviceIdStr; author_Str += ":"; author_Str += tokenStr;
-	// authorizationÀº µû·Î »Ì¾ÆµÎ±â
+	// authorizationì€ ë”°ë¡œ ë½‘ì•„ë‘ê¸°
 
 	string __t;
 	chunk = curl_slist_append(chunk, "Accept: application/json");
@@ -441,18 +441,18 @@ TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 	chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0");
 	chunk = curl_slist_append(chunk, "x-apigw-partnerid: papago");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-	// ÇÊ¿äÇÑ Çì´õ Ãß°¡ ÈÄ ¼¼ÆÃ
+	// í•„ìš”í•œ í—¤ë” ì¶”ê°€ í›„ ì„¸íŒ…
 
 	CURLcode rc = curl_easy_perform(curl);
 	free (utf8txt);
-	// ¸®Äù½ºÆ® Àü¼Û
+	// ë¦¬í€˜ìŠ¤íŠ¸ ì „ì†¡
 		
 	if(CURLE_OK != rc){
 //		cerr << "Error from cURL: " << curl_easy_strerror (rc) << endl;
 		free (m_chunk.memory);
 		return NULL;
 	}
-	// ¿¡·¯°¡ ÀÖÀ¸¸é ¸Ş½ÃÁö ¶ç¿ì°í µ¹¾Æ°¨
+	// ì—ëŸ¬ê°€ ìˆìœ¼ë©´ ë©”ì‹œì§€ ë„ìš°ê³  ëŒì•„ê°
 
 	char *translatedText_h;
 	if ((translatedText_h = stristr((const char*)m_chunk.memory, "\"translatedText\"")) != NULL) {
@@ -465,10 +465,10 @@ TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 			}
 			else { p++; continue; }
 		}
-		// JSON¿¡¼­´Â Å«µû¿ÈÇ¥¸¦ '\"'·Î ¾²¹Ç·Î ±×°É °í·ÁÇÏ¿© °É·¯³½´Ù
-		// \r\n È¤Àº \nÀ¸·Î ¹ø¿ªµÇ´Â °æ¿ì°¡ ÀÖ´Âµ¥ ÀÌ·²¶§´Â ±×³É °³Çà(0xD, 0xA / 0xA)À¸·Î Ã³¸®ÇØ¾ß µÉ °Í °°´Ù
-		// °Å±â´Ù ¿ø·¡ \°¡ ÇÏ³ª¸¸ ÀÖ¾ú´Âµ¥ 2°³·Î ´Ã¾î³ª¸ç ¹ø¿ªµÇ´Â °æ¿ì°¡ »ı°å´Ù
-		// ÀÏ´Ü ÀÌ°ÍµéÀº º¸¿ÏÇØ¼­ ¹èÆ÷ÇÏ±â·Î ÇÏÀÚ
+		// JSONì—ì„œëŠ” í°ë”°ì˜´í‘œë¥¼ '\"'ë¡œ ì“°ë¯€ë¡œ ê·¸ê±¸ ê³ ë ¤í•˜ì—¬ ê±¸ëŸ¬ë‚¸ë‹¤
+		// \r\n í˜¹ì€ \nìœ¼ë¡œ ë²ˆì—­ë˜ëŠ” ê²½ìš°ê°€ ìˆëŠ”ë° ì´ëŸ´ë•ŒëŠ” ê·¸ëƒ¥ ê°œí–‰(0xD, 0xA / 0xA)ìœ¼ë¡œ ì²˜ë¦¬í•´ì•¼ ë  ê²ƒ ê°™ë‹¤
+		// ê±°ê¸°ë‹¤ ì›ë˜ \ê°€ í•˜ë‚˜ë§Œ ìˆì—ˆëŠ”ë° 2ê°œë¡œ ëŠ˜ì–´ë‚˜ë©° ë²ˆì—­ë˜ëŠ” ê²½ìš°ê°€ ìƒê²¼ë‹¤
+		// ì¼ë‹¨ ì´ê²ƒë“¤ì€ ë³´ì™„í•´ì„œ ë°°í¬í•˜ê¸°ë¡œ í•˜ì
 
 		*p = 0;
 		TCHAR *utf16txt = UTF8_To_UTF16 (translatedText);
@@ -483,21 +483,21 @@ TCHAR *GetTranslatedText (TCHAR *srcLang, TCHAR *destLang, TCHAR *originText)
 
 		curl_slist_free_all (chunk);
 		free (m_chunk.memory);
-		// ¸Ş¸ğ¸® Á¤¸®
+		// ë©”ëª¨ë¦¬ ì •ë¦¬
 
 		return utf16txt;
-		// (ÀÌ ¶§ translatedText°¡ ¹Ù·Î ¹ø¿ªµÈ ÅØ½ºÆ®°¡ µÈ´Ù)
+		// (ì´ ë•Œ translatedTextê°€ ë°”ë¡œ ë²ˆì—­ëœ í…ìŠ¤íŠ¸ê°€ ëœë‹¤)
 	}
 	else {
-		// ¸Ş½ÃÁö¸¦ ¶ç¿î´Ù
+		// ë©”ì‹œì§€ë¥¼ ë„ìš´ë‹¤
 
 		curl_slist_free_all (chunk);
 		free (m_chunk.memory);
-		// ¸Ş¸ğ¸® Á¤¸®
+		// ë©”ëª¨ë¦¬ ì •ë¦¬
 
 		return NULL;
 	}
-	// translatedText¿¡ ÀÖ´Â °ª¸¸ »©¿À°í utf-8 -> utf-16À¸·Î µğÄÚµùÇÑ´Ù
-	// Å«µû¿ÈÇ¥ ¾È¿¡ µÑ·¯½×ÀÎ °ª¸¸ »©¿À¸é µÉµí
+	// translatedTextì— ìˆëŠ” ê°’ë§Œ ë¹¼ì˜¤ê³  utf-8 -> utf-16ìœ¼ë¡œ ë””ì½”ë”©í•œë‹¤
+	// í°ë”°ì˜´í‘œ ì•ˆì— ë‘˜ëŸ¬ìŒ“ì¸ ê°’ë§Œ ë¹¼ì˜¤ë©´ ë ë“¯
 }
-//*½ÇÁúÀûÀÎ ¹ø¿ª ÇÔ¼ö
+//*ì‹¤ì§ˆì ì¸ ë²ˆì—­ í•¨ìˆ˜
